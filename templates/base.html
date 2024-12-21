@@ -1,4 +1,3 @@
-<!--FLASK TEMPLATE BY LATIF YILMAZ-->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +12,47 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    {% block content %}
-    {% endblock %}
+    <div class="main">
+        <!-- Barra de navegación común -->
+        <div class="nav-bar">
+            <a href="#"><span class="material-icons menu">menu <span class="menu menu-hover"></span></span></a>
+            <a href="#"><img class="logo" src="{{ url_for('static', filename='img/logo.png') }}"></a>
+            <div class="search">
+                <input type="text" placeholder="Search">
+                <button><span class="material-icons">search</span></button>
+            </div>
+            <div class="end">
+                <ul>
+                    <li>
+                        <form action="/upload" method="POST" enctype="multipart/form-data" style="display: inline;">
+                            <label for="upload-input" style="cursor: pointer;">
+                                <span class="material-icons">video_call</span>Subir Videos
+                            </label>
+                            <input id="upload-input" type="file" name="video" style="display: none;" accept=".mp4, .avi, .mov" onchange="this.form.submit()">
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Barra lateral común -->
+        <div class="left-bar">
+            <ul>
+                <li><span id="home" class="material-icons">home</span><label for="home">Home</label></li>
+                <li><span id="explore" class="material-icons">explore</span><label for="explore">Explore</label></li>
+                <li><span id="subscriptions" class="material-icons">subscriptions</span><label for="subscriptions">Playlist</label></li>
+                <li><span id="video" class="material-icons">video_library</span><label for="video">Library</label></li>
+            </ul>
+        </div>
+
+        <!-- Contenido específico de cada página -->
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script>
+        document.body.style.zoom = "80%" 
+    </script>
 </body>
 </html>

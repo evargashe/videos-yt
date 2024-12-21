@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="video-page">
+    <div class="video-container">
+        <!-- Video original -->
+        <h2>Video Original</h2>
+        <video class="video-player" controls>
+            <source src="{{ url_for('static', filename='videos/' + original_video) }}" type="video/mp4">
+            Tu navegador no soporta videos.
+        </video>
+    </div>
+    
+    <div class="video-container">
+        <!-- Video procesado -->
+        <h2>Video Procesado</h2>
+        <video class="video-player" controls>
+            <source src="{{ url_for('static', filename='videos_procesados/' + processed_video) }}" type="video/mp4">
+            Tu navegador no soporta videos.
+        </video>
+    </div>
+
+    <div class="thumbnails">
+        <h3>Miniaturas Generadas</h3>
+        <div class="thumbnail-container">
+            {% for thumbnail in thumbnails %}
+                <!-- Asegúrate de que `thumbnail` es solo el nombre del archivo -->
+                <img src="{{ url_for('static', filename='thumbnails/' + thumbnail) }}" alt="{{ imagen }}" width="150">
+                {% endfor %}
+        </div>
+    </div>
+    
+</div>
+    <head>
+        <style>
+            .video-container {
+                text-align: center;
+                margin: 20px auto;
+            }
+    
+            .video-player {
+                width: 80%;
+                max-width: 800px;
+                height: auto;
+            }
+
+            .thumbnail-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            }
+
+            .thumbnail {
+                width: 120px;
+                height: 90px;
+                margin: 10px;
+                object-fit: cover;
+            }
+        </style>
+    </head>
+{% endblock %}

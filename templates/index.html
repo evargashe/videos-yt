@@ -1,75 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="main">
-        <div class="nav-bar">
-            <a href="#"><span class="material-icons menu">menu <span class="menu menu-hover"></span></span></a>
-            
-            <a href="#"><img class="logo" src="{{ url_for("static", filename="img/logo.png") }}"></a>
-            <div class="search">
-                <input type="text" placeholder="Search">
-                <button><span class="material-icons">search</span></button>
-                <span class="material-icons mic">mic</span>
-            </div>
-            <div class="end">
-                <ul>
-                    <li><span class="material-icons">video_call</span></li>
-                    <li><span class="material-icons">apps</span></li>
-                    <li><span class="material-icons">notifications</span></li>
-                    <li><img src="{{ url_for("static",filename="img/user.jpg") }}" class="profile"></img></li>
-                </ul>
-            </div>
-        </div>
-        <div class="left-bar">
-            <ul>
-                <li>
-                    <span id="home" class="material-icons">home</span>
-                    <label for="home">Home</label>
-                </li>
-                
-                <li>
-                    <span id="explore" class="material-icons">explore</span>
-                    <label for="explore">Explore</label>
-                </li>
-
-                <li>
-                    <span id="subscriptions" class="material-icons">subscriptions</span>
-                    <label for="subscriptions">Playlist</label>
-                </li>
-
-                <li>
-                    <span id="video" class="material-icons">video_library</span>
-                    <label for="video">Library</label>
-                </li>
-            </ul>
-        </div>
-
-        <div class="videos">
-            {% for video in videos %}
-                <div class="video">
-                    <video class="thumbnail" controls>
-                        <source src="{{ url_for('static', filename='videos/' + video) }}" type="video/mp4">
-                        Tu navegador no soporta videos.
-                    </video>
-                    <div class="bottom">
-                        <div class="channel-img"><img src="{{ url_for("static", filename="img/user.jpg") }}"></div>
-                        <div class="info">
-                            <span class="title">{{ video }}</span>
-                            <p class="channel-detail">Cargado desde el servidor</p>
-                        </div>
+    <div class="videos">
+        {% for video in videos %}
+            <div class="video">
+                <video class="thumbnail" controls>
+                    <source src="{{ url_for('static', filename='videos/' + video) }}" type="video/mp4">
+                    Tu navegador no soporta videos.
+                </video>
+                <div class="bottom">
+                    <div class="channel-img"><img src="{{ url_for("static", filename="img/user.jpg") }}"></div>
+                    <div class="info">
+                        <!-- Enlace para hacer clic en el nombre del video -->
+                        <a href="{{ url_for('video', filename=video) }}" class="title">{{ video }}</a>
+                        <p class="channel-detail">Cargado desde el servidor</p>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
-        
+            </div>
+        {% endfor %}
     </div>
-
-
-    <script>
-        document.body.style.zoom = "80%" 
-    </script>
 {% endblock %}
-
-
-
-
