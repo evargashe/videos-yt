@@ -1,8 +1,10 @@
-from flask import Flask, url_for, render_template, request, redirect, send_from_directory
+from flask import Flask, url_for, render_template, request, redirect, send_from_directory, jsonify
 import os
 import cv2
 from ultralytics import YOLO
 import uuid
+import numpy as np
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "key"
@@ -11,6 +13,8 @@ app.config['SECRET_KEY'] = "key"
 VIDEOS_FOLDER = os.path.join(app.root_path, 'static/videos')
 PROCESSED_VIDEOS_FOLDER = os.path.join(app.root_path, 'static/videos_procesados')
 THUMBNAILS_FOLDER = os.path.join(app.root_path, 'static/thumbnails')
+HEATMAPS_FOLDER = os.path.join(app.root_path, 'static/heatmaps')
+TIMESTAMPS_FOLDER = os.path.join(app.root_path, 'static/timestamps')
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm'}
 
 # Inicializar el modelo YOLO
@@ -20,7 +24,8 @@ model = YOLO("yolov8n.pt")
 os.makedirs(VIDEOS_FOLDER, exist_ok=True)
 os.makedirs(PROCESSED_VIDEOS_FOLDER, exist_ok=True)
 os.makedirs(THUMBNAILS_FOLDER, exist_ok=True)
-
+os.makedirs(HEATMAPS_FOLDER, exist_ok=True)
+os.makedirs(TIMESTAMPS_FOLDER, exist_ok=True)
 
 import subprocess
 
@@ -48,7 +53,7 @@ def allowed_file(filename):
 
 
 def process_video(video_path):
-    """Procesa el video utilizando YOLOv8 y genera un video procesado más miniaturas."""
+    """Procesa el video utilizando YOLOv8, genera un video procesado, miniaturas, mapa de calor y timestamps."""
     video_name = os.path.basename(video_path)
     cap = cv2.VideoCapture(video_path)
 
@@ -62,7 +67,12 @@ def process_video(video_path):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     out = cv2.VideoWriter(processed_video_path, fourcc, fps, (width, height))
 
+    # Inicializar mapa de calor
+    heatmap = np.zeros((height, width), dtype=np.float32)
+
     thumbnails = []
+    timestamps = {}
+
     frame_count = 0
 
     while cap.isOpened():
@@ -76,9 +86,14 @@ def process_video(video_path):
             for box in result.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 label = f"{model.names[int(box.cls)]} {float(box.conf):.2f}"
+                cls_name = model.names[int(box.cls)]
+
                 # Dibujar detecciones en el frame
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
                 cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+
+                # Actualizar el mapa de calor
+                heatmap[y1:y2, x1:x2] += 1
 
                 # Generar miniaturas cada 50 frames
                 if frame_count % 50 == 0 and len(thumbnails) < 10:
@@ -88,12 +103,34 @@ def process_video(video_path):
                     cv2.imwrite(thumbnail_path, thumbnail)
                     thumbnails.append(thumbnail_path)
 
+                # Guardar timestamps
+                if cls_name not in timestamps:
+                    timestamps[cls_name] = []
+                timestamps[cls_name].append({
+                    "time": frame_count / fps,
+                    "thumbnail": thumbnail_path if len(thumbnails) <= 10 else None
+                })
+
         # Escribir el frame procesado
         out.write(frame)
         frame_count += 1
 
     cap.release()
     out.release()
+
+    # Normalizar y guardar el mapa de calor como imagen
+    heatmap = cv2.normalize(heatmap, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+    heatmap = np.uint8(heatmap)
+    heatmap_colored = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+
+    # Guardar el mapa de calor
+    heatmap_path = os.path.join(HEATMAPS_FOLDER, f"{filename}_heatmap.jpg")
+    cv2.imwrite(heatmap_path, heatmap_colored)
+
+    # Guardar los timestamps en un archivo JSON
+    timestamps_path = os.path.join(TIMESTAMPS_FOLDER, f"{filename}_timestamps.json")
+    with open(timestamps_path, "w") as f:
+        json.dump(timestamps, f, indent=4)
 
     # Convertir el video procesado a un formato compatible
     final_processed_video_path = os.path.join(PROCESSED_VIDEOS_FOLDER, f"{filename}_processed.mp4")
@@ -102,7 +139,8 @@ def process_video(video_path):
     # Eliminar el archivo temporal
     os.remove(processed_video_path)
 
-    return final_processed_video_path, thumbnails
+    return final_processed_video_path, thumbnails, heatmap_path, timestamps_path
+
 
 
 
@@ -152,21 +190,43 @@ def video(filename):
         return "Video no encontrado", 404
 
 
-@app.route("/process_video/<filename>", methods=["POST"])
+@app.route("/process_video/<filename>", methods=["GET", "POST"])
 def process_video_route(filename):
-    video_path = os.path.join(VIDEOS_FOLDER, filename)
-    processed_video_path, thumbnails = process_video(video_path)
+    # Verifica si ya se ha procesado el video antes (se puede verificar si existen los archivos de salida)
+    processed_video_path = os.path.join(PROCESSED_VIDEOS_FOLDER, f"{filename}_processed.mp4")
+    heatmap_path = os.path.join(HEATMAPS_FOLDER, f"{filename}_heatmap.jpg")
+    timestamps_path = os.path.join(TIMESTAMPS_FOLDER, f"{filename}_timestamps.json")
+    
+    # Si el video no ha sido procesado previamente, procesarlo
+    if not os.path.exists(processed_video_path) or not os.path.exists(timestamps_path):
+        # Procesar el video
+        video_path = os.path.join(VIDEOS_FOLDER, filename)
+        processed_video_path, thumbnails, heatmap_path, timestamps_path = process_video(video_path)
 
-    processed_video_filename = os.path.basename(processed_video_path)
-    print(f"Original: {video_path}, Procesado: {processed_video_path}")
+    # Cargar el archivo JSON de timestamps
+    with open(timestamps_path, "r") as f:
+        timestamps = json.load(f)
 
-    return render_template(
+    # Obtener el query de la búsqueda (si existe)
+    query = request.args.get('query', '').lower()
+
+    # Filtrar resultados si hay una consulta
+    if query:
+        filtered_timestamps = {key: [entry for entry in value if query in key.lower()]
+                               for key, value in timestamps.items()}
+    else:
+        filtered_timestamps = timestamps
+
+    return render_template( 
         "video_processed.html",
         original_video=filename,
-        processed_video=processed_video_filename,
-        thumbnails=[os.path.basename(thumbnail) for thumbnail in thumbnails]
+        processed_video=os.path.basename(processed_video_path),
+        thumbnails=[os.path.basename(thumbnail) for thumbnail in thumbnails],
+        heatmap=os.path.basename(heatmap_path),
+        timestamps=os.path.basename(timestamps_path),
+        filtered_timestamps=filtered_timestamps,  # Pasar los resultados filtrados
+        query=query  # Pasar la consulta
     )
-
 
 
 

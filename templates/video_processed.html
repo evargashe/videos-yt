@@ -1,8 +1,37 @@
 {% extends 'base.html' %}
 
+
 {% block content %}
 <div class="container my-5">
-    <!-- Sección de Videos -->
+    <!-- Sección de búsqueda -->
+    <div class="mb-4">
+        <h3>Buscar Objetos</h3>
+        <form action="{{ url_for('process_video_route', filename=original_video) }}" method="get">
+            <input type="text" class="form-control" id="search_query" name="query" placeholder="Buscar un objeto...">
+            <button type="submit" class="btn btn-primary mt-2">Buscar</button>
+        </form>
+    </div>
+
+    <!-- Sección de resultados de búsqueda -->
+    <div id="search_results">
+        {% if query %}
+            <h3>Resultados para "{{ query }}"</h3>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                {% for key, value in filtered_timestamps.items() %}
+                    {% for item in value %}
+                        <div class="card shadow-sm border-0" style="width: 8rem;">
+                            <a href="#{{ item.time }}">
+                                <img src="{{ url_for('static', filename=item.thumbnail) }}" class="card-img-top" alt="Miniatura" style="object-fit: cover; height: 120px;">
+                            </a>
+                            <p class="text-center">Tiempo: {{ item.time }}s</p>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Video Original y Procesado -->
     <div class="row justify-content-center align-items-center mb-5">
         <!-- Video Original -->
         <div class="col-md-6 text-center">
@@ -20,14 +49,13 @@
             <h2 class="mb-3">Video Procesado</h2>
             <div class="ratio ratio-16x9 border rounded shadow-sm">
                 <video class="video-player" controls>
-                    <source src="{{ url_for('static', filename='videos_procesados/' + processed_video) }}"
-                        type="video/mp4">
+                    <source src="{{ url_for('static', filename='videos_procesados/' + processed_video) }}" type="video/mp4">
                     Tu navegador no soporta la reproducción de videos.
                 </video>
             </div>
         </div>
     </div>
-
+    
     <!-- Miniaturas Generadas -->
     <div>
         <h3 class="text-center mb-4">Miniaturas Generadas</h3>
@@ -40,33 +68,19 @@
             {% endfor %}
         </div>
     </div>
+
+    <!-- Mapa de Calor -->
+    <div class="text-center my-5">
+        <h3>Mapa de Calor</h3>
+        <img src="{{ url_for('static', filename='heatmaps/' + heatmap) }}" class="img-fluid rounded" alt="Mapa de Calor" style="max-height: 300px;">
+    </div>
+
+    <!-- Timestamps -->
+    <div class="my-5">
+        <h3>Timestamps</h3>
+        <p>Los timestamps de las detecciones se encuentran en el archivo JSON. Puedes ver o descargar el archivo a continuación:</p>
+        <a href="{{ url_for('static', filename='timestamps/' + timestamps) }}" class="btn btn-primary" download>Descargar Timestamps</a>
+    </div>
+
 </div>
-
-<style>
-    .video-player {
-        max-width: 100%;
-        /* Ajusta al contenedor */
-        height: auto;
-        /* Mantiene la proporción del video */
-    }
-
-    .card {
-        border-radius: 10px;
-        /* Bordes redondeados para las tarjetas */
-        overflow: hidden;
-    }
-
-    .card-img-top {
-        object-fit: cover;
-        /* Asegura que la imagen cubra completamente el área */
-        height: 120px;
-        /* Define la altura de la miniatura */
-    }
-
-
-    .ratio {
-        background: #000;
-        /* Fondo negro detrás del video */
-    }
-</style>
 {% endblock %}
