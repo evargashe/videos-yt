@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,53 +5,87 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
-    
-    <link rel="stylesheet" type = "text/css" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel='shortcut icon' type='image/x-icon' href='{{ url_for('static', filename='favicon.ico') }}'/>
+
+    <!-- CSS de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Iconos de Material Design -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel='shortcut icon' type='image/x-icon' href='{{ url_for('static', filename='favicon.ico') }}'/>
 </head>
 <body>
-    <div class="main">
-        <!-- Barra de navegación común -->
-        <div class="nav-bar">
-            <a href="#"><span class="material-icons menu">menu <span class="menu menu-hover"></span></span></a>
-            <a href="#"><img class="logo" src="{{ url_for('static', filename='img/logo.png') }}"></a>
-            <div class="search">
-                <input type="text" placeholder="Search">
-                <button><span class="material-icons">search</span></button>
-            </div>
-            <div class="end">
-                <ul>
-                    <li>
-                        <form action="/upload" method="POST" enctype="multipart/form-data" style="display: inline;">
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-secondary shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <form class="d-flex ms-auto">
+                    <!-- <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit"><span class="material-icons">search</span></button> -->
+                </form>
+                <ul class="navbar-nav ms-3">
+                    <li class="nav-item">
+                        <form action="/upload" method="POST" enctype="multipart/form-data">
                             <label for="upload-input" style="cursor: pointer;">
-                                <span class="material-icons">video_call</span>Subir Videos
+                                <span class="material-icons align-middle">video_call</span> Subir Videos
                             </label>
-                            <input id="upload-input" type="file" name="video" style="display: none;" accept=".mp4, .avi, .mov" onchange="this.form.submit()">
+                            <input id="upload-input" type="file" name="video" class="d-none" accept=".mp4, .avi, .mov" onchange="this.form.submit()">
                         </form>
                     </li>
                 </ul>
             </div>
         </div>
+    </nav>
 
-        <!-- Barra lateral común -->
-        <div class="left-bar">
-            <ul>
-                <li><span id="home" class="material-icons">home</span><label for="home">Home</label></li>
-                <li><span id="explore" class="material-icons">explore</span><label for="explore">Explore</label></li>
-                <li><span id="subscriptions" class="material-icons">subscriptions</span><label for="subscriptions">Playlist</label></li>
-                <li><span id="video" class="material-icons">video_library</span><label for="video">Library</label></li>
-            </ul>
-        </div>
+    <!-- Barra lateral -->
+    <div class="container-fluid">
+        <div class="row">
+            <nav class="col-md-2 d-none d-md-block bg-secondary sidebar">
+                <div class="position-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="material-icons align-middle">home</span>
+                                Home
+                            </a>
+                        </li>
+                        <!-- <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="material-icons align-middle">explore</span>
+                                Explore
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="material-icons align-middle">subscriptions</span>
+                                Playlist
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="material-icons align-middle">video_library</span>
+                                Library
+                            </a>
+                        </li> -->
+                        
+                    </ul>
+                </div>
+            </nav>
 
-        <!-- Contenido específico de cada página -->
-        <div class="content">
-            {% block content %}{% endblock %}
+            <!-- Contenido principal -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 bg-white">
+                {% block content %}{% endblock %}
+            </main>
         </div>
     </div>
 
-    <script>
-        document.body.style.zoom = "80%" 
-    </script>
+    <!-- Scripts de Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-vTIQ7K68Y2a0yNcD0xOD7YYc2zL09dNmWfNhgWsJC6QxRQymB49M3p32lySX9D7v" crossorigin="anonymous"></script>
 </body>
 </html>

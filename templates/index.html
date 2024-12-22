@@ -1,22 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="videos">
-        {% for video in videos %}
-            <div class="video">
-                <video class="thumbnail" controls>
-                    <source src="{{ url_for('static', filename='videos/' + video) }}" type="video/mp4">
-                    Tu navegador no soporta videos.
-                </video>
-                <div class="bottom">
-                    <div class="channel-img"><img src="{{ url_for("static", filename="img/user.jpg") }}"></div>
-                    <div class="info">
-                        <!-- Enlace para hacer clic en el nombre del video -->
-                        <a href="{{ url_for('video', filename=video) }}" class="title">{{ video }}</a>
-                        <p class="channel-detail">Cargado desde el servidor</p>
+    <div class="container mt-4">
+        <div class="row">
+            {% for video in videos %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <video class="card-img-top" controls>
+                            <source src="{{ url_for('static', filename='videos/' + video) }}" type="video/mp4">
+                            Tu navegador no soporta videos.
+                        </video>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="{{ url_for('static', filename='img/user.jpg') }}" alt="Channel Image" class="rounded-circle me-2" width="40" height="40">
+                                <div>
+                                    <a href="{{ url_for('video', filename=video) }}" class="text-decoration-none fw-bold text-truncate d-block" style="max-width: 200px;">{{ video }}</a>
+                                    <p class="text-muted mb-0">Cargado desde el servidor</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}

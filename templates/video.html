@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="video-page">
-        <div class="video-container">
-            <!-- Video original -->
-            <h2>Video Original</h2>
-            <video class="video-player" controls>
+<div class="container-fluid bg-white min-vh-100">
+    <div class="video-page text-center py-4">
+        <!-- Video original -->
+        <div class="video-container mb-4">
+            <h2 class="mb-3">Video Original</h2>
+            <video class="video-player border rounded shadow-sm" controls>
                 <source src="{{ url_for('static', filename='videos/' + video) }}" type="video/mp4">
                 Tu navegador no soporta videos.
             </video>
@@ -13,22 +14,16 @@
         
         <!-- Botón para procesar el video -->
         <form action="{{ url_for('process_video_route', filename=video) }}" method="POST">
-            <button type="submit">Procesar Video</button>
+            <button type="submit" class="btn btn-primary btn-lg">Procesar Video</button>
         </form>
     </div>
-    <head>
-        <style>
-            .video-container {
-                text-align: center;
-                margin: 20px auto;
-            }
-    
-            .video-player {
-                width: 80%;
-                max-width: 800px;
-                height: auto;
-            }
-        </style>
-    </head>
-    
+</div>
+
+<style>
+    .video-player {
+        width: 80%; /* Ajusta el ancho del video */
+        max-width: 800px; /* Establece un tamaño máximo */
+        height: auto; /* Mantiene la proporción del video */
+    }
+</style>
 {% endblock %}
