@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-processing-app
+  labels:
+    app: video-processing-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: video-processing-app
+  template:
+    metadata:
+      labels:
+        app: video-processing-app
+    spec:
+      containers:
+      - name: video-processing-app
+        image: gcr.io/video-streaming-445300/video-processing-cloud:latest
+        ports:
+        - containerPort: 5000
