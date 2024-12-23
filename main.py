@@ -51,7 +51,6 @@ def allowed_file(filename):
     """Verifica si el archivo tiene una extensión permitida."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 def process_video(video_path):
     """Procesa el video utilizando YOLOv8, genera un video procesado, miniaturas, mapa de calor y timestamps."""
     video_name = os.path.basename(video_path)
@@ -95,14 +94,6 @@ def process_video(video_path):
                 # Actualizar el mapa de calor
                 heatmap[y1:y2, x1:x2] += 1
 
-                # Generar miniaturas cada 50 frames
-                # os.makedirs(os.path.join(THUMBNAILS_FOLDER, filename), exist_ok=True)
-                # if frame_count % 50 == 0 and len(thumbnails) < 10:
-                #     thumbnail_name = f"{filename}_{uuid.uuid4().hex}.jpg"
-                #     thumbnail_path = os.path.join(THUMBNAILS_FOLDER, filename, thumbnail_name) 
-                #     thumbnail = frame[y1:y2, x1:x2] if x2 > x1 and y2 > y1 else frame
-                #     cv2.imwrite(thumbnail_path, thumbnail)
-                #     thumbnails.append(thumbnail_path)
 
                 if frame_count % 50 == 0 and len(thumbnails) < 10:
                     os.makedirs(os.path.join(THUMBNAILS_FOLDER, filename), exist_ok=True)
@@ -119,10 +110,15 @@ def process_video(video_path):
                 thumbnail_path2 = os.path.join('\\static\\thumbnails', filename, thumbnail_name)
                 if cls_name not in timestamps:
                     timestamps[cls_name] = []
+                if timestamps[cls_name] and timestamps[cls_name][-1]["thumbnail"] == thumbnail_path2:
+                    continue  # Si es igual, no agregamos el nuevo objeto
+
                 timestamps[cls_name].append({
-                    "time": frame_count / fps,
-                    "thumbnail": thumbnail_path2 if len(thumbnails) <= 10 else None
+                "time": frame_count / fps,
+                "thumbnail": thumbnail_path2 if len(thumbnails) <= 10 else None
                 })
+
+                
 
         # Escribir el frame procesado
         out.write(frame)
