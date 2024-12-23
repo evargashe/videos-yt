@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
 <div class="container my-5">
     <!-- Sección de búsqueda -->
@@ -12,6 +11,9 @@
         </form>
     </div>
 
+    <!-- Botón para ocultar/mostrar la sección -->
+    <button id="toggleButton" class="btn btn-primary mb-3">Ocultar Resultados</button>
+
     <!-- Sección de resultados de búsqueda -->
     <div id="search_results">
         {% if query %}
@@ -21,7 +23,7 @@
                     {% for item in value %}
                         <div class="card shadow-sm border-0" style="width: 8rem;">
                             <a href="#{{ item.time }}">
-                                <img src="{{ url_for('static', filename=item.thumbnail) }}" class="card-img-top" alt="Miniatura" style="object-fit: cover; height: 120px;">
+                                <img src="{{ item.thumbnail }}" class="card-img-top" alt="Miniatura" style="object-fit: cover; height: 120px;">
                             </a>
                             <p class="text-center">Tiempo: {{ item.time }}s</p>
                         </div>
@@ -60,9 +62,9 @@
     <div>
         <h3 class="text-center mb-4">Miniaturas Generadas</h3>
         <div class="d-flex flex-wrap justify-content-center gap-3">
-            {% for thumbnail in thumbnails %}
+            {% for thumbnail_url in thumbnails %}
             <div class="card shadow-sm border-0" style="width: 8rem;">
-                <img src="{{ url_for('static', filename='thumbnails/' + thumbnail) }}" class="card-img-top"
+                <img src="{{ thumbnail_url }}" class="card-img-top"
                     alt="Miniatura" style="object-fit: cover; height: 120px;">
             </div>
             {% endfor %}
@@ -83,4 +85,20 @@
     </div>
 
 </div>
+
+<!-- Aquí agregamos el script -->
+<script>
+    document.getElementById("toggleButton").addEventListener("click", function() {
+        var searchResults = document.getElementById("search_results");
+        // Alternar la visibilidad de la sección
+        if (searchResults.style.display === "none") {
+            searchResults.style.display = "block";
+            this.innerText = "Ocultar Resultados"; // Cambiar texto del botón
+        } else {
+            searchResults.style.display = "none";
+            this.innerText = "Mostrar Resultados"; // Cambiar texto del botón
+        }
+    });
+</script>
+
 {% endblock %}

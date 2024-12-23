@@ -96,19 +96,32 @@ def process_video(video_path):
                 heatmap[y1:y2, x1:x2] += 1
 
                 # Generar miniaturas cada 50 frames
+                # os.makedirs(os.path.join(THUMBNAILS_FOLDER, filename), exist_ok=True)
+                # if frame_count % 50 == 0 and len(thumbnails) < 10:
+                #     thumbnail_name = f"{filename}_{uuid.uuid4().hex}.jpg"
+                #     thumbnail_path = os.path.join(THUMBNAILS_FOLDER, filename, thumbnail_name) 
+                #     thumbnail = frame[y1:y2, x1:x2] if x2 > x1 and y2 > y1 else frame
+                #     cv2.imwrite(thumbnail_path, thumbnail)
+                #     thumbnails.append(thumbnail_path)
+
                 if frame_count % 50 == 0 and len(thumbnails) < 10:
+                    os.makedirs(os.path.join(THUMBNAILS_FOLDER, filename), exist_ok=True)
                     thumbnail_name = f"{filename}_{uuid.uuid4().hex}.jpg"
-                    thumbnail_path = os.path.join(THUMBNAILS_FOLDER, thumbnail_name)
+                    thumbnail_path = os.path.join(THUMBNAILS_FOLDER, filename, thumbnail_name)
                     thumbnail = frame[y1:y2, x1:x2] if x2 > x1 and y2 > y1 else frame
-                    cv2.imwrite(thumbnail_path, thumbnail)
-                    thumbnails.append(thumbnail_path)
+                    if thumbnail.size > 0:  # Asegúrate de que el fragmento de imagen es válido
+                        cv2.imwrite(thumbnail_path, thumbnail)
+                        thumbnails.append(thumbnail_path)
+                    else:
+                        print(f"Miniatura inválida en el frame {frame_count}: {x1}, {y1}, {x2}, {y2}")
 
                 # Guardar timestamps
+                thumbnail_path2 = os.path.join('\\static\\thumbnails', filename, thumbnail_name)
                 if cls_name not in timestamps:
                     timestamps[cls_name] = []
                 timestamps[cls_name].append({
                     "time": frame_count / fps,
-                    "thumbnail": thumbnail_path if len(thumbnails) <= 10 else None
+                    "thumbnail": thumbnail_path2 if len(thumbnails) <= 10 else None
                 })
 
         # Escribir el frame procesado
@@ -192,16 +205,29 @@ def video(filename):
 
 @app.route("/process_video/<filename>", methods=["GET", "POST"])
 def process_video_route(filename):
+    
+    #processed_video_path = os.path.join(PROCESSED_VIDEOS_FOLDER, f"{filename}_processed.mp4")
+    #heatmap_path = os.path.join(HEATMAPS_FOLDER, f"{filename}_heatmap.jpg")
+    #timestamps_path = os.path.join(TIMESTAMPS_FOLDER, f"{filename}_timestamps.json")
+
     # Verifica si ya se ha procesado el video antes (se puede verificar si existen los archivos de salida)
-    processed_video_path = os.path.join(PROCESSED_VIDEOS_FOLDER, f"{filename}_processed.mp4")
-    heatmap_path = os.path.join(HEATMAPS_FOLDER, f"{filename}_heatmap.jpg")
-    timestamps_path = os.path.join(TIMESTAMPS_FOLDER, f"{filename}_timestamps.json")
+    base_filename, ext = os.path.splitext(filename)
+    processed_video_path = os.path.join(PROCESSED_VIDEOS_FOLDER, f"{base_filename}_processed.mp4")
+    heatmap_path = os.path.join(HEATMAPS_FOLDER, f"{base_filename}_heatmap.jpg")
+    timestamps_path = os.path.join(TIMESTAMPS_FOLDER, f"{base_filename}_timestamps.json")
+    thumbnails_path = os.path.join(THUMBNAILS_FOLDER, base_filename)
+    #base_thumbnails_path = os.path.basename(thumbnails_path)
+    #print(f"thumbnails_path: {thumbnails_path}")
     
     # Si el video no ha sido procesado previamente, procesarlo
     if not os.path.exists(processed_video_path) or not os.path.exists(timestamps_path):
+        print(f"Archivos no encontrados: {processed_video_path}, {timestamps_path}")
         # Procesar el video
         video_path = os.path.join(VIDEOS_FOLDER, filename)
         processed_video_path, thumbnails, heatmap_path, timestamps_path = process_video(video_path)
+    else:
+        print(f"Archivos encontrados: {processed_video_path}, {timestamps_path}")
+
 
     # Cargar el archivo JSON de timestamps
     with open(timestamps_path, "r") as f:
@@ -217,16 +243,30 @@ def process_video_route(filename):
     else:
         filtered_timestamps = timestamps
 
+    
+    #for thumbnail in os.listdir(thumbnails_path):
+    #    print(url_for('static', filename=f"thumbnails/"+ base_filename +'/'+ thumbnail))
+    #    relative_path = os.path.join(subdirectory, thumbnail)
+
+    thumbnails = [
+        url_for('static', filename=f"thumbnails/{base_filename}/{thumbnail}")
+        for thumbnail in os.listdir(thumbnails_path)
+    ]
+
+
+
     return render_template( 
         "video_processed.html",
         original_video=filename,
         processed_video=os.path.basename(processed_video_path),
-        thumbnails=[os.path.basename(thumbnail) for thumbnail in thumbnails],
+        #thumbnails=[os.path.basename(thumbnail) for thumbnail in thumbnails],
+        thumbnails=thumbnails,
         heatmap=os.path.basename(heatmap_path),
         timestamps=os.path.basename(timestamps_path),
         filtered_timestamps=filtered_timestamps,  # Pasar los resultados filtrados
         query=query  # Pasar la consulta
     )
+
 
 
 
